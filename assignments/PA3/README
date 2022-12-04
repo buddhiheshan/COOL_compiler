@@ -130,3 +130,161 @@ Instructions
 
 Write-up for PA3
 ----------------
+
+In this practical the goal is to implement a parser for COOL language with bison.
+
+
+Non-terminals
+--------------
+
+Non-terminals for the grammar of COOL is declared at first. Some were already given
+in the provided cool.y specifications and additional types were declared by referring 
+to the COOL manual Section 12.
+
+Already declared in given cool.y
+
+%type <program> program
+%type <classes> class_list
+%type <class_> class
+
+Additional types declared by referring to the COOL manual
+
+%type <feature> feature
+%type <features> feature_list
+%type <formal> formal
+%type <formals> formal_list
+%type <expression> expr
+%type <expressions> exp_let
+%type <expressions> expr_param
+%type <expressions> exp_block
+%type <case> case_branch
+%type <cases> case_branches
+
+Precedence Declarations
+-------------------------
+
+Precedence of unary and binary operation were obtained from the COOL manual Section 11.1. 
+In COOL binary operations are left associative except the ASSIGNMENT which is right associative. 
+Given below is the precedence from highest to lowest
+
+       .
+       @
+       ~
+       isvoid
+       * /
+       + -
+       <= < = 
+       not
+       <-
+
+When defining the precedence in specification the definitions were made by referring the Bison 
+manual Section 5.3. When defining the precedence in Bison, the precedence has to be specified 
+from the lowest to the highest.
+
+
+Grammar
+--------
+
+The grammar for COOL was defined by referring the Section 12 of the COOL manual. In the beginning 
+of the gammer section in specification, the program has to be defined.
+
+Following are the type rules implemented by referring the COOL manual,
+
+program
+	class_list
+
+class
+	CLASS TYPEID '{' '}' ';' 
+	CLASS TYPEID '{' feature_list '}' ';'
+	CLASS TYPEID INHERITS TYPEID '{' '}' ';'
+	CLASS TYPEID INHERITS TYPEID '{' feature_list '}' ';'
+
+class_list
+	class 
+	class_list class
+
+feature
+	* features are methods and attributes in a class. 
+	* attributes were defined as,
+
+	OBJECTID ':' TYPEID ';'
+	OBJECTID ':' TYPEID ASSIGN expr ';'
+
+	* methods were defined as,
+		
+	OBJECTID '(' formal_list ')' ':' TYPEID '{' expr '}' ';'
+
+feature_list
+	* feature list can be empty itself but cannot have empty features.
+
+
+formals
+	* formals are parameters that are passed to the methods.
+	* as single parameter is defined as follows.
+
+		OBJECTID ':' TYPEID 
+
+	* single, many and no parameters can be passed into methods. Therefore it formal_list was defined
+		
+
+expr 
+	* expression are the statements that are in the body of the program. 
+
+	* assignments
+		OBJECTID ASSIGN expr 
+
+	* method calls
+		expr '@' TYPEID '.' OBJECTID '(' expr_param ')'
+		OBJECTID '(' expr_param ')' 
+		expr '.' TYPEID '(' expr_param ')' 
+
+	* conditionals
+		IF expr THEN expr FI
+		IF expr THEN expr ELSE expr FI
+
+	* looops
+		WHILE expr LOOP expr POOL
+
+
+	* expression block
+		'{' expr_block '}'
+
+	* case expressions
+
+	* new
+		NEW TYPEID
+
+	* isvoid
+		ISVOID expr
+
+	* operators
+		* unary operation are of the form 		<op> expr
+			+ - / * < LE = 
+		* binary operations are of the form 	expr <op> expr
+			~
+
+	* not
+		NOT expr
+
+
+	* parenthesis
+		'(' expr ')'
+
+
+	* let
+
+	* OBJECTID 
+	* BOOL_CONST
+	* INT_CONST
+	* STR_CONST
+
+Testing
+--------
+
+good.cl was modified by adding valid syntax and bad.cl was modified by adding syntax with errors. 
+
+To test the parser use the collowing commands in order.
+	make clean
+	make
+	make parser
+	make dotest
